@@ -1,0 +1,11 @@
+name: NamelessPlugin
+main: NamelessPlugin\NamelessPlugin
+version: 1.0.0-BETA1
+api: [3.0.0]
+author: Samerton
+description: Connect your server with the NamelessMC website software
+website: https://github.com/NamelessMC/Nameless-PMMP-Plugin
+commands:
+ website:
+  description: Get a link to our website
+  usage: "/website"

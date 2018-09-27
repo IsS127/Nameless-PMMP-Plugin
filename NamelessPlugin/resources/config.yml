@@ -1,0 +1,23 @@
+# Nameless Plugin config file
+
+# v2 API URL
+# For example http://yoursite.com/api/v2/API_KEY
+# Enable the API and obtain the API URL in AdminCP > Core > API
+api-url: ""
+
+# Enable ingame registration?
+enable-registration: false
+
+# Enter this if you wish for the plugin to send data about this server
+# and its players to the website. This is required for name and rank sync.
+# You can find this in AdminCP -> Minecraft -> Minecraft Servers
+server-id: 0
+
+# This feature sends information about the server and online players to
+# your NamelessMC website. This value is in seconds. Increase to lower
+# the frequency that data is sent. Decrease to send data more frequently.
+# Setting this too low can cause lag. Set to 0 to disable.
+server-data-upload-rate: 10
+
+# Turn on debug mode for the underlying Nameless Plugin PHP API
+api-debug-mode: false
