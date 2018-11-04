@@ -1,0 +1,65 @@
+#
+# NamelessMC PocketMine Plugin
+# Translation file - English
+#
+##########################
+# Admin related messages #
+##########################
+#
+api-url-required: "Please enter an API URL in the NamelessPlugin config first!"
+api-task-completed: "API task completed with URL {x}"
+
+##################
+# General Errors #
+##################
+no-api-data: "&cThe API did not return any data!"
+api-error: "&cThere was an API error executing the command!"
+api-error-debug: "&cThere was an API error performing the action {x}"
+error-code: "Error code: {x}"
+error-message: "Error message: {x}"
+invalid-action: "&cInvalid action {x}!"
+no-permission: "&cYou do not have permission to use this command"
+invalid-usage: "&cInvalid usage: &r{x}"
+ingame-command: "&cYou can only use this command ingame"
+invalid-response: "&cInvalid API response"
+no-api-response: "&cNo response was returned by the API"
+unable-to-find-player: "&cUnable to find player {x}"
+
+#######################
+# API Response Errors #
+#######################
+not-registered: "&cYou have not registered on the website yet!"
+invalid-code: "&cThe code is incorrect!"
+invalid-email: "&cPlease enter a valid email address!"
+username-exists: "&cYour username already exists on the website!"
+uuid-exists: "&cYour UUID already exists on the website!"
+email-exists: "&cYour email address already exists on the website!"
+email-failed: "&cUnable to send a registration email. Please contact an admin to activate your account."
+
+########################
+# API Response Success #
+########################
+account-validated: "&aYou have validated your account successfully!"
+registered-successfully-link: "&aThanks for registering!\n&aPlease visit the following link to complete registration:\n&6{x}"
+registered-successfully-email: "&aThanks for registering!\n&aPlease check your emails to complete registration."
+
+############
+# Commands #
+############
+get-user-command-info: "Returns information about a certain usermame or UUID"
+register-command-info: "Creates an account on our website"
+validate-command-info: "Validates your website account"
+
+################
+# GetUser Info #
+################
+website-user-info: "&9Website user information:"
+website-user-info-username: "&9Username: &a{x}"
+website-user-info-nickname: "&9Nickname: &a{x}"
+website-user-info-uuid: "&9UUID: &a{x}"
+website-user-info-group: "&9Group: &a{x}"
+website-user-info-registered: "&9Registered: &a{x}"
+website-user-info-validated-yes: "&9Validated: &aYes"
+website-user-info-validated-no: "&9Validated: &cNo"
+website-user-info-banned-yes: "&9Banned: &cYes"
+website-user-info-banned-no: "&9Banned: &aNo"

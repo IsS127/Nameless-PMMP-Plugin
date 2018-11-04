@@ -69,7 +69,7 @@ class APITask extends AsyncTask {
 	
 	public function onCompletion($server){
 		if(NamelessPlugin::getInstance()->isDebuggingEnabled()){
-			$server->getLogger()->info('API task completed with URL ' . $this->_plugin_url);
+			$server->getLogger()->info(str_replace('{x}', $this->_plugin_url, NamelessPlugin::getInstance()->getMessage('api-task-completed')));
 			$server->getLogger()->info(print_r($this->_response));
 		}
 

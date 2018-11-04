@@ -21,7 +21,7 @@ class RegisterCommand extends Command implements PluginIdentifiableCommand {
 	private $_plugin;
 	
 	public function __construct($plugin){
-		parent::__construct('register', 'Creates an account on our website', '/register <email>', array());
+		parent::__construct('register', $plugin->getMessage('register-command-info'), '/register <email>', array());
 		$this->setPermission('namelessmc.user.register');
 		
 		$this->_plugin = $plugin;
@@ -29,12 +29,12 @@ class RegisterCommand extends Command implements PluginIdentifiableCommand {
 	
 	public function execute(CommandSender $sender, $alias, array $args){
 		if(!$sender->hasPermission('namelessmc.user.register')){
-			$sender->sendMessage(TextFormat::RED . 'You do not have permission to use this command');
+			$sender->sendMessage($this->_plugin->getMessage('no-permission'));
 			return false;
 		}
 		
 		if($sender instanceof Player){
-			if(count($args)){
+			if(count($args) && strlen($args[0])){
 				$email = $args[0];
 				$player = $this->_plugin->getServer()->getPlayerExact($sender->getName());
 				$uuid = $player->getUniqueId()->toString();
@@ -42,10 +42,10 @@ class RegisterCommand extends Command implements PluginIdentifiableCommand {
 				$this->_plugin->getServer()->getAsyncPool()->submitTask(new APITask($this->_plugin->getAPIURL(), $sender->getName(), 'POST', 'register', array('username' => $sender->getName(), 'uuid' => $uuid, 'email' => $email)));
 				
 			} else
-				$sender->sendMessage(TextFormat::RED . 'Invalid usage: /register <email>');
+				$sender->sendMessage(str_replace('{x}', '/register <email>', $this->_plugin->getMessage('invalid-usage')));
 
 		} else {
-			$sender->sendMessage('You can only use this command ingame');
+			$sender->sendMessage($this->_plugin->getMessage('ingame-command'));
 		}
 		
 		return true;
@@ -59,45 +59,42 @@ class RegisterCommand extends Command implements PluginIdentifiableCommand {
 		if($response->error === true){
 			if($player){
 				if($response->code == 7)
-					$player->sendMessage(TextFormat::RED . 'Please enter a valid email address');
+					$player->sendMessage($instance->getMessage('invalid-email'));
 				else if($response->code == 11)
-					$player->sendMessage(TextFormat::RED . 'Your username already exists on the website!');
+					$player->sendMessage($instance->getMessage('username-exists'));
 				else if($response->code == 12)
-					$player->sendMessage(TextFormat::RED . 'Your UUID already exists on the website!');
+					$player->sendMessage($instance->getMessage('uuid-exists'));
 				else if($response->code == 10)
-					$player->sendMessage(TextFormat::RED . 'Your email address already exists on the website!');
+					$player->sendMessage($instance->getMessage('email-exists'));
 				else if($response->code == 14)
-					$player->sendMessage(TextFormat::RED . 'Unable to send registration email, please contact an admin to activate your account');
+					$player->sendMessage($instance->getMessage('email-failed'));
 				else
-					$player->sendMessage(TextFormat::RED . 'There was an API error executing the command!');
+					$player->sendMessage($instance->getMessage('api-error'));
 			}
 			
 			if($instance->isDebuggingEnabled()){
-				$instance->getLogger()->info('There was an API error with action register');
-				$instance->getLogger()->info('Error code: ' . $response->code);
-				$instance->getLogger()->info('Error message: ' . $response->message);
+				$instance->getLogger()->info(str_replace('{x}', 'register', $instance->getMessage('api-error-debug')));
+				$instance->getLogger()->info(str_replace('{x}', $response->code, $instance->getMessage('error-code')));
+				$instance->getLogger()->info(str_replace('{x}', $response->message, $instance->getMessage('error-message')));
 			}
 			
 		} else {
 			if($player){
 				if(isset($response->link)){
-					$player->sendMessage(TextFormat::BLUE . 'Thanks for registering!');
-					$player->sendMessage(TextFormat::BLUE . 'Please visit the following link to complete registration:');
-					$player->sendMessage(TextFormat::GREEN . $response->link);
+					$player->sendMessage(str_replace('{x}', $response->link, $instance->getMessage('registered-successfully-link')));
 
 				} else if(isset($response->message)){
-					$player->sendMessage(TextFormat::BLUE . 'Thanks for registering!');
-					$player->sendMessage(TextFormat::BLUE . 'Please check your emails to complete registration.');
+					$player->sendMessage($instance->getMessage('registered-successfully-email'));
 					
 				} else {
-					$player->sendMessage(TextFormat::RED . 'Invalid API response!');
+					$player->sendMessage($instance->getMessage('invalid-response'));
 					
 					if($instance->isDebuggingEnabled()){
-						$instance->getLogger()->info('No response was returned by the API');
+						$instance->getLogger()->info($instance->getMessage('no-api-response'));
 					}
 				}
 			} else {
-				$instance->getLogger()->info('Unable to find player ' . $username);
+				$instance->getLogger()->info(str_replace('{x}', $username, $instance->getMessage('unable-to-find-player')));
 			}
 		}
 	}

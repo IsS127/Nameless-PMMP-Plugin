@@ -21,7 +21,7 @@ class ValidateCommand extends Command implements PluginIdentifiableCommand {
 	private $_plugin;
 	
 	public function __construct($plugin){
-		parent::__construct('validate', 'Validates your website account', '/validate <code>', array());
+		parent::__construct('validate', $plugin->getMessage('validate-command-info'), '/validate <code>', array());
 		$this->setPermission('namelessmc.user.validate');
 		
 		$this->_plugin = $plugin;
@@ -29,12 +29,12 @@ class ValidateCommand extends Command implements PluginIdentifiableCommand {
 	
 	public function execute(CommandSender $sender, $alias, array $args){
 		if(!$sender->hasPermission('namelessmc.user.validate')){
-			$sender->sendMessage(TextFormat::RED . 'You do not have permission to use this command');
+			$sender->sendMessage($plugin->getMessage('no-permission'));
 			return false;
 		}
 		
 		if($sender instanceof Player){
-			if(count($args)){
+			if(count($args) && strlen($args[0])){
 				$code = $args[0];
 				$player = $this->_plugin->getServer()->getPlayerExact($sender->getName());
 				$uuid = $player->getUniqueId()->toString();
@@ -42,10 +42,10 @@ class ValidateCommand extends Command implements PluginIdentifiableCommand {
 				$this->_plugin->getServer()->getAsyncPool()->submitTask(new APITask($this->_plugin->getAPIURL(), $sender->getName(), 'POST', 'validateUser', array('uuid' => $uuid, 'code' => $code)));
 				
 			} else
-				$sender->sendMessage(TextFormat::RED . 'Invalid usage: /validate <code>');
+				$sender->sendMessage(str_replace('{x}', '/validate <code>', $this->_plugin->getMessage('invalid-usage')));
 
 		} else {
-			$sender->sendMessage('You can only use this command ingame');
+			$sender->sendMessage($this->_plugin->getMessage('ingame-command'));
 		}
 
 		return true;
@@ -59,33 +59,33 @@ class ValidateCommand extends Command implements PluginIdentifiableCommand {
 		if($response->error === true){
 			if($player){
 				if($response->code == 16)
-					$player->sendMessage(TextFormat::RED . 'You have not registered on the website yet!');
+					$player->sendMessage($instance->getMessage('not-registered'));
 				else if($response->code == 28)
-					$player->sendMessage(TextFormat::RED . 'The code is incorrect!');
+					$player->sendMessage($instance->getMessage('invalid-code'));
 				else
-					$player->sendMessage(TextFormat::RED . 'There was an API error executing the command!');
+					$player->sendMessage($instance->getMessage('api-error'));
 			}
 			
 			if($instance->isDebuggingEnabled()){
-				$instance->getLogger()->info('There was an API error with action validateUser');
-				$instance->getLogger()->info('Error code: ' . $response->code);
-				$instance->getLogger()->info('Error message: ' . $response->message);
+				$instance->getLogger()->info(str_replace('{x}', 'validateUser', $instance->getMessage('api-error-debug')));
+				$instance->getLogger()->info(str_replace('{x}', $response->code, $instance->getMessage('error-code')));
+				$instance->getLogger()->info(str_replace('{x}', $response->message, $instance->getMessage('error-message')));
 			}
 				
 		} else {
 			if($player){
 				if(isset($response->message)){
-					$player->sendMessage(TextFormat::GREEN . 'You have activated your account successfully!');
+					$player->sendMessage($instance->getMessage('account-validated'));
 
 				} else {
-					$player->sendMessage(TextFormat::RED . 'Invalid API response!');
+					$player->sendMessage($instance->getMessage('invalid-response'));
 					
 					if($instance->isDebuggingEnabled()){
-						$instance->getLogger()->info('No response was returned by the API');
+						$instance->getLogger()->info($instance->getMessage('no-api-response'));
 					}
 				}
 			} else {
-				$instance->getLogger()->info('Unable to find player ' . $username);
+				$instance->getLogger()->info(str_replace('{x}', $username, $instance->getMessage('unable-to-find-player')));
 			}
 		}
 	}

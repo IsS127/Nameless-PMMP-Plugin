@@ -10,12 +10,14 @@
 namespace NamelessPlugin;
 
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
 
 class NamelessPlugin extends PluginBase {
-	private $_plugin_url = '';
+	private $_plugin_url = '', $_default_language = '';
 	private static $_instance;
 	private $_debugging_enabled = false;
+	private $_language = null;
 	
 	/*
 	 *  onEnable method
@@ -24,16 +26,54 @@ class NamelessPlugin extends PluginBase {
 		self::$_instance = $this;
 
 		$this->saveDefaultConfig();
+
+		if(!is_dir($this->getDataFolder()))
+			mkdir($this->getDataFolder());
+
+		if(!is_dir($this->getDataFolder() . 'languages'))
+			mkdir($this->getDataFolder() . 'languages');
+
+		// Language files
+		foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->getFile() . "resources/languages")) as $file){
+			$file = str_replace("\\", "/", $file);
+			$file_array = explode("/", $file);
+
+			// Only save .yml
+			if(!file_exists($this->getDataFolder() . 'languages/' . $file_array[count($file_array) - 1]) && substr($file_array[count($file_array) - 1], strrpos($file_array[count($file_array) - 1], '.') + 1) == "yml"){
+				$this->saveResource("languages/" . $file_array[count($file_array) - 1]);
+			}
+			
+			// Temp - force language file regeneration
+			//if(substr($file_array[count($file_array) - 1], strrpos($file_array[count($file_array) - 1], '.') + 1) == "yml")
+			//	$this->saveResource("languages/" . $file_array[count($file_array) - 1], true);
+		}
+
+		// Get language from config
+		$this->_default_language = ($this->getConfig()->get('default-language') ? $this->getConfig()->get('default-language') : 'eng_en.yml');
 		
-		if(!strlen($this->getConfig()->get('api-url'))){
+		if(file_exists($this->getDataFolder() . 'languages/' . $this->_default_language)){
+			$lang = new Config($this->getDataFolder() . 'languages/' . $this->_default_language, Config::YAML);
+			$this->_language = $lang->getAll();
+
+		} else {
 			$this->getLogger()->info('===========================================================');
-			$this->getLogger()->info('Please enter an API URL in the NamelessPlugin config first!');
+			$this->getLogger()->info('Unable to load default language! Disabling plugin...');
 			$this->getLogger()->info('===========================================================');
 			$this->getServer()->getPluginManager()->disablePlugin($this);
 
+			return;
+
+		}
+
+		if(!strlen($this->getConfig()->get('api-url'))){
+			$this->getLogger()->info('===========================================================');
+			$this->getLogger()->info($this->getMessage('api-url-required'));
+			$this->getLogger()->info('===========================================================');
+			$this->getServer()->getPluginManager()->disablePlugin($this);
+
+			return;
+
 		} else {
-			$this->getLogger()->info('Nameless Plugin enabled!');
-			
 			$this->_plugin_url = rtrim($this->getConfig()->get('api-url'), '/') . '/';
 			
 			if($this->getConfig()->get('api-debug-mode') == true)
@@ -56,7 +96,7 @@ class NamelessPlugin extends PluginBase {
 	 *  onDisable method
 	 */
 	public function onDisable(){
-		$this->getLogger()->info('Nameless Plugin disabled!');
+		
 	}
 	
 	/*
@@ -64,6 +104,39 @@ class NamelessPlugin extends PluginBase {
 	 */
 	public function getAPIURL(){
 		return $this->_plugin_url;
+	}
+	
+	/*
+	 *  Get message from config
+	 */
+	public function getMessage($message){
+		// Parse colours
+		$colours = array(
+			'&0' => TextFormat::BLACK,
+			'&1' => TextFormat::DARK_BLUE,
+			'&2' => TextFormat::DARK_GREEN,
+			'&3' => TextFormat::DARK_AQUA,
+			'&4' => TextFormat::DARK_RED,
+			'&5' => TextFormat::DARK_PURPLE,
+			'&6' => TextFormat::GOLD,
+			'&7' => TextFormat::GRAY,
+			'&8' => TextFormat::DARK_GRAY,
+			'&9' => TextFormat::BLUE,
+			'&a' => TextFormat::GREEN,
+			'&b' => TextFormat::AQUA,
+			'&c' => TextFormat::RED,
+			'&d' => TextFormat::LIGHT_PURPLE,
+			'&e' => TextFormat::YELLOW,
+			'&f' => TextFormat::WHITE,
+			'&k' => TextFormat::OBFUSCATED,
+			'&l' => TextFormat::BOLD,
+			'&m' => TextFormat::STRIKETHROUGH,
+			'&n' => TextFormat::UNDERLINE,
+			'&o' => TextFormat::ITALIC,
+			'&r' => TextFormat::RESET
+		);
+		
+		return str_replace(array_keys($colours), array_values($colours), $this->_language[$message]);
 	}
 	
 	/*
@@ -100,13 +173,13 @@ class NamelessPlugin extends PluginBase {
 					break;
 					
 				default:
-					$instance->getLogger()->info('Invalid action "' . $action . '"!');
+					$instance->getLogger()->info(str_replace('{x}', $action, self::getInstance()->getMessage('invalid-action')));
 				
 					break;
 			}
 		} else {
 			if($player){
-				$player->sendMessage(TextFormat::RED . 'There API did not return any data!');
+				$player->sendMessage(self::getInstance()->getMessage('no-api-data'));
 			}
 		}
 	}

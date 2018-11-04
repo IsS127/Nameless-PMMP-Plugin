@@ -21,7 +21,7 @@ class GetUserCommand extends Command implements PluginIdentifiableCommand {
 	private $_plugin;
 	
 	public function __construct($plugin){
-		parent::__construct('getuser', 'Returns information about a certain usermame or UUID', '/getUser <username/uuid>', array());
+		parent::__construct('getuser', $plugin->getMessage('get-user-command-info'), '/getUser <username/uuid>', array());
 		$this->setPermission('namelessmc.admin.getuser');
 		
 		$this->_plugin = $plugin;
@@ -29,11 +29,11 @@ class GetUserCommand extends Command implements PluginIdentifiableCommand {
 	
 	public function execute(CommandSender $sender, $alias, array $args){
 		if(!$sender->hasPermission('namelessmc.admin.getuser')){
-			$sender->sendMessage(TextFormat::RED . 'You do not have permission to use this command');
+			$sender->sendMessage($this->_plugin->getMessage('no-permission'));
 			return false;
 		}
 		
-		if(count($args)){
+		if(count($args) && strlen($args[0])){
 			$user = $args[0];
 
 			if(strlen($user) == 32 || strlen($user) == 36)
@@ -42,7 +42,7 @@ class GetUserCommand extends Command implements PluginIdentifiableCommand {
 				$this->_plugin->getServer()->getAsyncPool()->submitTask(new APITask($this->_plugin->getAPIURL(), $sender->getName(), 'GET', 'userInfo', array('username' => $user)));
 			
 		} else
-			$sender->sendMessage(TextFormat::RED . 'Invalid usage: /getuser <username/uuid>');
+			$sender->sendMessage(str_replace('{x}', '/getuser <username/uuid>', $this->_plugin->getMessage('invalid_usage')));
 
 		return true;
 	}
@@ -54,39 +54,39 @@ class GetUserCommand extends Command implements PluginIdentifiableCommand {
 	public static function handleAPIResponse($instance, $player, $response){
 		if($response->error === true){
 			if($player){
-				$player->sendMessage(TextFormat::RED . 'There was an API error executing the command!');
+				$player->sendMessage($instance->getMessage('api-error'));
 			}
 			
 			if($instance->isDebuggingEnabled()){
-				$instance->getLogger()->info('There was an API error with action getUser');
-				$instance->getLogger()->info('Error code: ' . $response->code);
-				$instance->getLogger()->info('Error message: ' . $response->message);
+				$instance->getLogger()->info(str_replace('{x}', 'register', $instance->getMessage('api-error-debug')));
+				$instance->getLogger()->info(str_replace('{x}', $response->code, $instance->getMessage('error-code')));
+				$instance->getLogger()->info(str_replace('{x}', $response->message, $instance->getMessage('error-message')));
 			}
-				
+			
 		} else {
 			if($player){
 				if(isset($response->username)){
-					$player->sendMessage(TextFormat::BLUE . 'Website user information:');
-					$player->sendMessage(TextFormat::BLUE . 'Username: ' . TextFormat::GREEN . $response->username);
+					$player->sendMessage($instance->getMessage('website-user-info'));
+					$player->sendMessage(str_replace('{x}', $response->username, $instance->getMessage('website-user-info-username')));
 					
 					if($response->username != $response->displayname)
-						$player->sendMessage(TextFormat::BLUE . 'Nickname: ' . TextFormat::GREEN . $response->displayname);
+						$player->sendMessage(str_replace('{x}', $response->displayname, $instance->getMessage('website-user-info-nickname')));
 					
-					$player->sendMessage(TextFormat::BLUE . 'UUID: ' . TextFormat::GREEN . $response->uuid);
-					$player->sendMessage(TextFormat::BLUE . 'Group: ' . TextFormat::GREEN . $response->group_name);
-					$player->sendMessage(TextFormat::BLUE . 'Registered: ' . TextFormat::GREEN . date('d M Y, H:i', $response->registered));
-					$player->sendMessage(TextFormat::BLUE . 'Validated: ' . ($response->validated ? TextFormat::GREEN . 'Yes' : TextFormat::Red . 'No'));
-					$player->sendMessage(TextFormat::BLUE . 'Banned: ' . ($response->banned ? TextFormat::RED . 'Yes' : TextFormat::GREEN . 'No'));
+					$player->sendMessage(str_replace('{x}', $response->uuid, $instance->getMessage('website-user-info-uuid')));
+					$player->sendMessage(str_replace('{x}', $response->group_name, $instance->getMessage('website-user-info-group')));
+					$player->sendMessage(str_replace('{x}', date('d M Y, H:i', $response->registered), $instance->getMessage('website-user-info-registered')));
+					$player->sendMessage(($response->validated ? $instance->getMessage('website-user-info-validated-yes') : $instance->getMessage('website-user-info-validated-no')));
+					$player->sendMessage(($response->banned ? $instance->getMessage('website-user-info-banned-yes') : $instance->getMessage('website-user-info-banned-no')));
 
 				} else {
-					$player->sendMessage(TextFormat::RED . 'Invalid API response!');
+					$player->sendMessage($instance->getMessage('invalid-response'));
 					
 					if($instance->isDebuggingEnabled()){
-						$instance->getLogger()->info('No response was returned by the API');
+						$instance->getLogger()->info($instance->getMessage('no-api-response'));
 					}
 				}
 			} else {
-				$instance->getLogger()->info('Unable to find player ' . $username);
+				$instance->getLogger()->info(str_replace('{x}', $username, $instance->getMessage('unable-to-find-player')));
 			}
 		}
 	}
